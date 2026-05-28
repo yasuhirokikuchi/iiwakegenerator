@@ -9,6 +9,9 @@ const createWindow = () => {
   });
 
   win.loadFile("index.html");
+
+  // 開発時にDevToolsを開く
+  win.webContents.openDevTools();
 };
 
 // アプリの準備ができたら関数を呼び出す
