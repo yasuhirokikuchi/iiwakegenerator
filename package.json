@@ -1,0 +1,24 @@
+{
+  "name": "electron-seisaku",
+  "version": "1.0.0",
+  "description": "ソフトⅡ個人製作",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yasuhirokikuchi/electron-seisaku.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/yasuhirokikuchi/electron-seisaku/issues"
+  },
+  "homepage": "https://github.com/yasuhirokikuchi/electron-seisaku#readme",
+  "devDependencies": {
+    "electron": "^42.3.0"
+  }
+}
