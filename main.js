@@ -8,10 +8,11 @@ const createWindow = () => {
     height: 600,
   });
 
+  win.maximize(); // ウィンドウフルスクリーン
   win.loadFile("index.html");
 
   // 開発時にDevToolsを開く
-  win.webContents.openDevTools();
+  // win.webContents.openDevTools();
 };
 
 // アプリの準備ができたら関数を呼び出す
