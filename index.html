@@ -1,20 +1,44 @@
 <!doctype html>
-<html>
+<html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'"
-    />
-    <meta
-      http-equiv="X-Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'"
-    />
-    <title>Hello from Electron renderer!</title>
+    <title>言い訳ジェネレーター</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1>Hello from Electron renderer!</h1>
-    <p>👋</p>
+    <main class="container">
+      <h1 class="title">言い訳ジェネレーター</h1>
+
+      <div class="input-section">
+        <div class="field event-field">
+          <label for="event">断りたいこと</label>
+          <input type="text" id="event" placeholder="例：金曜日の飲み会" />
+        </div>
+
+        <div class="field tone-field">
+          <label for="tone">テイスト</label>
+          <select id="tone">
+            <option value="polite">丁寧（ビジネス用）</option>
+            <option value="samurai">武士風</option>
+            <option value="gal">ギャル風</option>
+            <option value="business">意識高い系</option>
+          </select>
+        </div>
+
+        <div class="field button-field">
+          <label>&nbsp;</label>
+          <button id="generate-btn" class="btn-primary">生成する</button>
+        </div>
+      </div>
+
+      <div class="output-section">
+        <div class="chat-window" id="chat-window">
+          <div class="message incoming">
+            <div class="bubble-wrapper"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script src="script.js"></script>
   </body>
 </html>
