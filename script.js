@@ -1,28 +1,35 @@
-// index.html の <script> 部分のみ抜粋・修正
 const generateBtn = document.getElementById("generate-btn");
 const chatWindow = document.getElementById("chat-window");
 const eventInput = document.getElementById("event");
-const toneSelect = document.getElementById("tone"); // セレクトボックスを取得
+const toneSelect = document.getElementById("tone");
 
 generateBtn.addEventListener("click", async () => {
-  const eventText = eventInput.value;
+  const eventText = eventInput.value.trim();
   if (!eventText) return;
 
   generateBtn.textContent = "生成中...";
   generateBtn.disabled = true;
 
-  // 選択されたテイストのテキストを取得（例：「武士風」など）
   const tone = toneSelect.options[toneSelect.selectedIndex].text;
 
   try {
-    // preload.jsを経由して裏側（main.js）に通信し、AIの返答を待つ
-    const aiText = await window.api.generateExcuse({ eventText, tone });
+    const response = await fetch("/api/generate-excuse", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ eventText, tone }),
+    });
 
-    // 画面に追加
-    addIncomingMessage(aiText);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error ?? "リクエストに失敗しました。");
+    }
+
+    addIncomingMessage(data.text);
   } catch (error) {
     addIncomingMessage(
-      "エラーが発生しました。APIキーや通信状況を確認してください。",
+      error.message ||
+        "エラーが発生しました。APIキーや通信状況を確認してください。",
     );
   } finally {
     generateBtn.textContent = "生成する";
