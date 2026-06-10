@@ -7,10 +7,18 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 // Gemini APIのセットアップ
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+function getAppIcon() {
+  if (process.platform === "win32") {
+    return path.join(__dirname, "assets", "icon.ico");
+  }
+  return path.join(__dirname, "assets", "icon.png");
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 800,
     height: 600,
+    icon: getAppIcon(),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"), // 画面と裏側を繋ぐ橋渡し
       contextIsolation: true,
