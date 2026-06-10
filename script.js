@@ -31,16 +31,31 @@ generateBtn.addEventListener("click", async () => {
   }
 });
 
-// メッセージを追加する関数（前回と同じ）
 function addIncomingMessage(text) {
   const messageDiv = document.createElement("div");
   messageDiv.className = "message incoming";
-  messageDiv.innerHTML = `
-    <div class="bubble-wrapper">
-      <div class="bubble">${text.replace(/\n/g, "<br>")}</div>
-      <button class="copy-btn" onclick="navigator.clipboard.writeText('${text.replace(/\n/g, "\\n")}')">📋 コピー</button>
-    </div>
-  `;
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "bubble-wrapper";
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  text.split("\n").forEach((line, index) => {
+    if (index > 0) bubble.appendChild(document.createElement("br"));
+    bubble.appendChild(document.createTextNode(line));
+  });
+
+  const copyBtn = document.createElement("button");
+  copyBtn.className = "copy-btn";
+  copyBtn.type = "button";
+  copyBtn.textContent = "📋 コピー";
+  copyBtn.addEventListener("click", () => {
+    navigator.clipboard.writeText(text);
+  });
+
+  wrapper.appendChild(bubble);
+  wrapper.appendChild(copyBtn);
+  messageDiv.appendChild(wrapper);
   chatWindow.appendChild(messageDiv);
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
