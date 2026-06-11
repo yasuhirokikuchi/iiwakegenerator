@@ -12,7 +12,7 @@ generateBtn.addEventListener("click", async () => {
   generateBtn.textContent = "生成中...";
   generateBtn.disabled = true;
 
-  const tone = toneSelect.options[toneSelect.selectedIndex].text;
+  const tone = toneSelect.value;
 
   try {
     const response = await fetch("/api/generate-excuse", {

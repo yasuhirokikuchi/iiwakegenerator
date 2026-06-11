@@ -1,4 +1,11 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import {
+  SYSTEM_INSTRUCTION,
+  buildUserMessage,
+  detectInjectionAttempt,
+  sanitizeEventText,
+  validateTone,
+} from "../lib/prompt-safety.js";
 import { checkRateLimit, getClientIp } from "../lib/rate-limit.js";
 
 const MAX_EVENT_LENGTH = 500;
@@ -41,22 +48,32 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "断りたい内容を入力してください。" });
   }
 
-  if (!tone || typeof tone !== "string") {
+  const toneLabel = validateTone(tone);
+  if (!toneLabel) {
     return res.status(400).json({ error: "テイストを選択してください。" });
   }
 
-  const trimmedEvent = eventText.trim().slice(0, MAX_EVENT_LENGTH);
+  const trimmedEvent = sanitizeEventText(eventText).slice(0, MAX_EVENT_LENGTH);
+  if (!trimmedEvent) {
+    return res.status(400).json({ error: "断りたい内容を入力してください。" });
+  }
+
+  if (detectInjectionAttempt(trimmedEvent)) {
+    return res.status(400).json({
+      error: "入力内容を処理できません。断りたい内容のみを入力してください。",
+    });
+  }
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-3.5-flash",
+      systemInstruction: SYSTEM_INSTRUCTION,
+    });
 
-    const prompt = `あなたは優秀なアシスタントです。以下の内容を断る文章を作成してください。
-【断りたい内容】${trimmedEvent}
-【テイスト】${tone}
-【条件】相手を過度に怒らせない範囲で、指定したテイストになりきること。言い訳の本文のみを出力すること。`;
-
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent(
+      buildUserMessage(trimmedEvent, toneLabel),
+    );
     const response = await result.response;
     return res.status(200).json({ text: response.text() });
   } catch (error) {
