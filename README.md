@@ -87,11 +87,14 @@ npx vercel --prod
 .
 ├── api/
 │   └── generate-excuse.js   # Vercel サーバーレス API（Gemini 呼び出し）
+├── lib/
+│   └── rate-limit.js        # レート制限ユーティリティ
 ├── public/
 │   └── assets/              # 静的ファイル（アイコンなど）
+├── src/
+│   ├── main.js              # フロントエンドロジック
+│   └── style.css            # スタイリング
 ├── index.html               # UI 構造
-├── style.css                # スタイリング
-├── script.js                # フロントエンドロジック
 ├── vite.config.js           # Vite 設定
 ├── vercel.json              # Vercel デプロイ設定
 ├── .env.example             # 環境変数のサンプル

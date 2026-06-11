@@ -1,3 +1,5 @@
+import "./style.css";
+
 const generateBtn = document.getElementById("generate-btn");
 const chatWindow = document.getElementById("chat-window");
 const eventInput = document.getElementById("event");
