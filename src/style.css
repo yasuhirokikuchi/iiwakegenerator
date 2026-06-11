@@ -14,8 +14,9 @@ body {
   padding: 32px 20px;
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* 画面の上寄りに配置 */
-  height: 100vh;
+  align-items: flex-start;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* アプリのコンテナ（横幅を800pxに拡大） */
@@ -195,4 +196,102 @@ select:focus {
 .copy-btn:hover {
   background-color: #e5e7eb;
   color: #374151;
+}
+
+/* --- タブレット（入力を2段レイアウト） --- */
+@media (max-width: 768px) {
+  .input-section {
+    flex-wrap: wrap;
+  }
+
+  .event-field {
+    flex: 1 1 100%;
+  }
+
+  .tone-field,
+  .button-field {
+    flex: 1 1 calc(50% - 8px);
+  }
+}
+
+/* --- スマートフォン --- */
+@media (max-width: 640px) {
+  body {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .container {
+    max-width: none;
+    min-height: 100dvh;
+    height: auto;
+    max-height: none;
+    padding: 20px 16px;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .title {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+  }
+
+  .input-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .tone-field,
+  .button-field {
+    flex: none;
+    width: 100%;
+  }
+
+  .button-field > label {
+    display: none;
+  }
+
+  .btn-primary {
+    min-height: 48px;
+    height: auto;
+  }
+
+  .output-section {
+    padding-top: 20px;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+
+  .chat-window {
+    padding: 16px;
+    min-height: 240px;
+  }
+
+  .bubble-wrapper {
+    max-width: 100%;
+  }
+
+  .copy-btn {
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .container {
+    padding: 16px 12px;
+  }
+
+  .title {
+    font-size: 1.1rem;
+  }
+
+  input,
+  select,
+  .btn-primary {
+    font-size: 16px; /* iOS のフォーカス時ズーム防止 */
+  }
 }
