@@ -198,8 +198,8 @@ select:focus {
   color: #374151;
 }
 
-/* --- タブレット（入力を2段レイアウト） --- */
-@media (max-width: 768px) {
+/* --- タブレット（641px〜768px：入力を2段レイアウト） --- */
+@media (min-width: 641px) and (max-width: 768px) {
   .input-section {
     flex-wrap: wrap;
   }
@@ -238,15 +238,18 @@ select:focus {
 
   .input-section {
     flex-direction: column;
+    flex-wrap: nowrap;
     align-items: stretch;
     gap: 12px;
     margin-bottom: 20px;
   }
 
+  .event-field,
   .tone-field,
   .button-field {
     flex: none;
     width: 100%;
+    max-width: 100%;
   }
 
   .button-field > label {
