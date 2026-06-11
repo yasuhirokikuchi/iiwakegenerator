@@ -1,11 +1,33 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { checkRateLimit, getClientIp } from "../lib/rate-limit.js";
 
 const MAX_EVENT_LENGTH = 500;
+const MAX_BODY_BYTES = 2048;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const contentType = req.headers["content-type"] ?? "";
+  if (!contentType.includes("application/json")) {
+    return res.status(415).json({ error: "Content-Type は application/json である必要があります。" });
+  }
+
+  const contentLength = Number(req.headers["content-length"] ?? 0);
+  if (contentLength > MAX_BODY_BYTES) {
+    return res.status(413).json({ error: "リクエストが大きすぎます。" });
+  }
+
+  const clientIp = getClientIp(req);
+  const rateLimit = await checkRateLimit(clientIp);
+  res.setHeader("X-RateLimit-Remaining", String(rateLimit.remaining));
+
+  if (!rateLimit.success) {
+    return res.status(429).json({
+      error: "リクエストが多すぎます。しばらく待ってから再度お試しください。",
+    });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
