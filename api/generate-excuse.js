@@ -10,6 +10,68 @@ import { checkRateLimit, getClientIp } from "../lib/rate-limit.js";
 
 const MAX_EVENT_LENGTH = 500;
 const MAX_BODY_BYTES = 2048;
+const MAX_GEMINI_ATTEMPTS = 3;
+const RETRY_DELAYS_MS = [500, 1500];
+
+const RETRYABLE_HTTP_STATUSES = new Set([429, 500, 502, 503, 504]);
+const RETRYABLE_MESSAGE_PATTERNS = [
+  "resource_exhausted",
+  "unavailable",
+  "deadline_exceeded",
+  "internal",
+  "too many requests",
+  "temporarily unavailable",
+  "econnreset",
+  "etimedout",
+  "econnrefused",
+  "fetch failed",
+  "network",
+  "socket hang up",
+];
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableGeminiError(error) {
+  const status = error?.status ?? error?.statusCode;
+  if (typeof status === "number" && RETRYABLE_HTTP_STATUSES.has(status)) {
+    return true;
+  }
+
+  const message = String(error?.message ?? error).toLowerCase();
+  return RETRYABLE_MESSAGE_PATTERNS.some((pattern) =>
+    message.includes(pattern),
+  );
+}
+
+async function generateExcuseText(model, userMessage) {
+  let lastError;
+
+  for (let attempt = 0; attempt < MAX_GEMINI_ATTEMPTS; attempt++) {
+    try {
+      const result = await model.generateContent(userMessage);
+      const response = await result.response;
+      return response.text();
+    } catch (error) {
+      lastError = error;
+      const hasRetriesLeft = attempt < MAX_GEMINI_ATTEMPTS - 1;
+
+      if (!hasRetriesLeft || !isRetryableGeminiError(error)) {
+        throw error;
+      }
+
+      const delay = RETRY_DELAYS_MS[attempt] ?? RETRY_DELAYS_MS.at(-1);
+      console.warn(
+        `Gemini API 一時エラーのためリトライ (${attempt + 1}/${MAX_GEMINI_ATTEMPTS - 1}):`,
+        error?.message ?? error,
+      );
+      await sleep(delay);
+    }
+  }
+
+  throw lastError;
+}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -71,11 +133,11 @@ export default async function handler(req, res) {
       systemInstruction: SYSTEM_INSTRUCTION,
     });
 
-    const result = await model.generateContent(
+    const text = await generateExcuseText(
+      model,
       buildUserMessage(trimmedEvent, toneLabel),
     );
-    const response = await result.response;
-    return res.status(200).json({ text: response.text() });
+    return res.status(200).json({ text });
   } catch (error) {
     console.error("APIエラー:", error);
     return res
