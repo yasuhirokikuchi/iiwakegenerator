@@ -90,7 +90,15 @@ export default async function handler(req, res) {
   }
 
   const clientIp = getClientIp(req);
-  const rateLimit = await checkRateLimit(clientIp);
+  let rateLimit;
+  try {
+    rateLimit = await checkRateLimit(clientIp);
+  } catch (error) {
+    console.error("レート制限エラー:", error);
+    return res
+      .status(500)
+      .json({ error: "サーバーが一時的に利用できません。" });
+  }
   res.setHeader("X-RateLimit-Remaining", String(rateLimit.remaining));
 
   if (!rateLimit.success) {
@@ -104,7 +112,14 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "APIキーが設定されていません。" });
   }
 
-  const { eventText, tone } = req.body ?? {};
+  let body;
+  try {
+    body = req.body;
+  } catch {
+    return res.status(400).json({ error: "リクエストの JSON が不正です。" });
+  }
+
+  const { eventText, tone } = body ?? {};
 
   if (!eventText || typeof eventText !== "string" || !eventText.trim()) {
     return res.status(400).json({ error: "断りたい内容を入力してください。" });

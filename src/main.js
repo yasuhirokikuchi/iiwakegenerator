@@ -21,7 +21,21 @@ generateBtn.addEventListener("click", async () => {
       body: JSON.stringify({ eventText, tone }),
     });
 
-    const data = await response.json();
+    const rawBody = await response.text();
+    let data = {};
+    if (rawBody) {
+      try {
+        data = JSON.parse(rawBody);
+      } catch {
+        throw new Error(
+          "サーバーから無効な応答が返されました。npm run dev:vercel で起動し、表示された URL（通常 http://localhost:3000）にアクセスしてください。",
+        );
+      }
+    } else if (!response.ok) {
+      throw new Error(
+        "API に接続できませんでした。npm run dev:vercel で起動し、Vite の URL（:5173 など）ではなく Vercel の URL にアクセスしてください。",
+      );
+    }
 
     if (!response.ok) {
       throw new Error(data.error ?? "リクエストに失敗しました。");

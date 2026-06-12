@@ -4,8 +4,8 @@
   "description": "言い訳ジェネレーター - Gemini AI で断り文を生成する Web アプリ",
   "type": "module",
   "scripts": {
-    "dev": "vercel dev",
-    "dev:vite": "vite",
+    "dev": "vite",
+    "dev:vercel": "vercel dev --yes",
     "build": "vite build",
     "preview": "vite preview"
   },
