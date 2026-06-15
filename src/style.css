@@ -42,12 +42,15 @@ body {
 }
 
 /* --- 入力エリア（横並びに変更） --- */
+.excuse-form {
+  flex-shrink: 0;
+  margin-bottom: 24px;
+}
+
 .input-section {
   display: flex;
   gap: 16px; /* 要素間の隙間 */
   align-items: flex-end; /* 下揃えにしてラベルと入力欄の高さを合わせる */
-  margin-bottom: 24px;
-  flex-shrink: 0;
 }
 
 .field {
@@ -114,10 +117,13 @@ input[aria-invalid="true"]:focus {
 }
 
 .field-error {
-  margin-top: 6px;
   font-size: 0.8rem;
   color: #dc2626;
   line-height: 1.4;
+}
+
+.form-error {
+  margin-top: 8px;
 }
 
 .field-error[hidden] {
@@ -363,6 +369,9 @@ select:disabled {
     flex-wrap: nowrap;
     align-items: stretch;
     gap: 12px;
+  }
+
+  .excuse-form {
     margin-bottom: 20px;
   }
 

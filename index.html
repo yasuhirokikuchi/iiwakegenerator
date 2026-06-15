@@ -10,42 +10,44 @@
     <main class="container">
       <h1 class="title">言い訳ジェネレーター</h1>
 
-      <form id="excuse-form" class="input-section" novalidate>
-        <div class="field event-field">
-          <label for="event">断りたいこと</label>
-          <input
-            type="text"
-            id="event"
-            name="event"
-            placeholder="例：金曜日の飲み会"
-            autocomplete="off"
-            aria-describedby="event-error"
-          />
-          <p id="event-error" class="field-error" role="alert" hidden></p>
-        </div>
+      <form id="excuse-form" class="excuse-form" novalidate>
+        <div class="input-section">
+          <div class="field event-field">
+            <label for="event">断りたいこと</label>
+            <input
+              type="text"
+              id="event"
+              name="event"
+              placeholder="例：金曜日の飲み会"
+              autocomplete="off"
+              aria-describedby="event-error"
+            />
+          </div>
 
-        <div class="field tone-field">
-          <label for="tone">テイスト</label>
-          <select id="tone" name="tone">
-            <option value="polite">丁寧</option>
-            <option value="samurai">武士風</option>
-            <option value="gal">ギャル風</option>
-            <option value="business">意識高い系</option>
-            <option value="chuuni">中二病風</option>
-            <option value="grandma">ネコ語</option>
-            <option value="yakuza">極道風</option>
-            <option value="baby">赤ちゃん言葉</option>
-            <option value="sexy">セクシー系</option>
-            <option value="sage">おぢさん風</option>
-          </select>
-        </div>
+          <div class="field tone-field">
+            <label for="tone">テイスト</label>
+            <select id="tone" name="tone">
+              <option value="polite">丁寧</option>
+              <option value="samurai">武士風</option>
+              <option value="gal">ギャル風</option>
+              <option value="business">意識高い系</option>
+              <option value="chuuni">中二病風</option>
+              <option value="grandma">ネコ語</option>
+              <option value="yakuza">極道風</option>
+              <option value="baby">赤ちゃん言葉</option>
+              <option value="sexy">セクシー系</option>
+              <option value="sage">おぢさん風</option>
+            </select>
+          </div>
 
-        <div class="field button-field">
-          <label class="button-field-label" aria-hidden="true">&nbsp;</label>
-          <button type="submit" id="generate-btn" class="btn-primary">
-            生成する
-          </button>
+          <div class="field button-field">
+            <label class="button-field-label" aria-hidden="true">&nbsp;</label>
+            <button type="submit" id="generate-btn" class="btn-primary">
+              生成する
+            </button>
+          </div>
         </div>
+        <p id="event-error" class="field-error form-error" role="alert" hidden></p>
       </form>
 
       <div class="output-section">
