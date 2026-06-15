@@ -5,12 +5,51 @@ const chatWindow = document.getElementById("chat-window");
 const eventInput = document.getElementById("event");
 const toneSelect = document.getElementById("tone");
 
+const DEFAULT_BTN_HTML = "生成する";
+
+function setLoading(isLoading) {
+  generateBtn.disabled = isLoading;
+  eventInput.disabled = isLoading;
+  toneSelect.disabled = isLoading;
+  generateBtn.classList.toggle("is-loading", isLoading);
+  generateBtn.innerHTML = isLoading
+    ? '<span class="btn-spinner" aria-hidden="true"></span><span>生成中...</span>'
+    : DEFAULT_BTN_HTML;
+}
+
+function showTypingIndicator() {
+  const messageDiv = document.createElement("div");
+  messageDiv.className = "message incoming loading-message";
+  messageDiv.setAttribute("role", "status");
+  messageDiv.setAttribute("aria-live", "polite");
+  messageDiv.setAttribute("aria-label", "言い訳を生成しています");
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "bubble-wrapper";
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble typing-bubble";
+  bubble.innerHTML =
+    '<span class="typing-dots" aria-hidden="true"><span></span><span></span><span></span></span><span class="typing-label">考え中...</span>';
+
+  wrapper.appendChild(bubble);
+  messageDiv.appendChild(wrapper);
+  chatWindow.appendChild(messageDiv);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+
+  return messageDiv;
+}
+
+function removeTypingIndicator(indicator) {
+  indicator?.remove();
+}
+
 generateBtn.addEventListener("click", async () => {
   const eventText = eventInput.value.trim();
   if (!eventText) return;
 
-  generateBtn.textContent = "生成中...";
-  generateBtn.disabled = true;
+  setLoading(true);
+  const typingIndicator = showTypingIndicator();
 
   const tone = toneSelect.value;
 
@@ -41,28 +80,31 @@ generateBtn.addEventListener("click", async () => {
       throw new Error(data.error ?? "リクエストに失敗しました。");
     }
 
+    removeTypingIndicator(typingIndicator);
     addIncomingMessage(data.text);
   } catch (error) {
+    removeTypingIndicator(typingIndicator);
     addIncomingMessage(
       error.message ||
         "エラーが発生しました。APIキーや通信状況を確認してください。",
+      { isError: true },
     );
   } finally {
-    generateBtn.textContent = "生成する";
-    generateBtn.disabled = false;
+    setLoading(false);
     eventInput.value = "";
   }
 });
 
-function addIncomingMessage(text) {
+function addIncomingMessage(text, { isError = false } = {}) {
   const messageDiv = document.createElement("div");
   messageDiv.className = "message incoming";
+  if (isError) messageDiv.classList.add("error-message");
 
   const wrapper = document.createElement("div");
   wrapper.className = "bubble-wrapper";
 
   const bubble = document.createElement("div");
-  bubble.className = "bubble";
+  bubble.className = isError ? "bubble bubble-error" : "bubble";
   text.split("\n").forEach((line, index) => {
     if (index > 0) bubble.appendChild(document.createElement("br"));
     bubble.appendChild(document.createTextNode(line));
