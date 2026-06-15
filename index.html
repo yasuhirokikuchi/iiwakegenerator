@@ -10,15 +10,23 @@
     <main class="container">
       <h1 class="title">言い訳ジェネレーター</h1>
 
-      <div class="input-section">
+      <form id="excuse-form" class="input-section" novalidate>
         <div class="field event-field">
           <label for="event">断りたいこと</label>
-          <input type="text" id="event" placeholder="例：金曜日の飲み会" />
+          <input
+            type="text"
+            id="event"
+            name="event"
+            placeholder="例：金曜日の飲み会"
+            autocomplete="off"
+            aria-describedby="event-error"
+          />
+          <p id="event-error" class="field-error" role="alert" hidden></p>
         </div>
 
         <div class="field tone-field">
           <label for="tone">テイスト</label>
-          <select id="tone">
+          <select id="tone" name="tone">
             <option value="polite">丁寧</option>
             <option value="samurai">武士風</option>
             <option value="gal">ギャル風</option>
@@ -33,13 +41,21 @@
         </div>
 
         <div class="field button-field">
-          <label>&nbsp;</label>
-          <button id="generate-btn" class="btn-primary">生成する</button>
+          <label class="button-field-label" aria-hidden="true">&nbsp;</label>
+          <button type="submit" id="generate-btn" class="btn-primary">
+            生成する
+          </button>
         </div>
-      </div>
+      </form>
 
       <div class="output-section">
-        <div class="chat-window" id="chat-window">
+        <div
+          class="chat-window"
+          id="chat-window"
+          role="log"
+          aria-live="polite"
+          aria-relevant="additions"
+        >
           <div class="message incoming">
             <div class="bubble-wrapper"></div>
           </div>

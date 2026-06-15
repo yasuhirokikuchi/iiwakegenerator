@@ -103,6 +103,27 @@ select:focus {
   box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
 }
 
+input[aria-invalid="true"] {
+  background-color: #fef2f2;
+  border-color: #fca5a5;
+}
+
+input[aria-invalid="true"]:focus {
+  border-color: #f87171;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.field-error {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: #dc2626;
+  line-height: 1.4;
+}
+
+.field-error[hidden] {
+  display: none;
+}
+
 .btn-primary {
   width: 100%;
   padding: 12px;
@@ -282,6 +303,23 @@ select:disabled {
   border: 1px solid #fecaca;
 }
 
+.bubble-error-label {
+  display: inline-block;
+  margin-bottom: 4px;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #b91c1c;
+  background-color: #fee2e2;
+  border-radius: 4px;
+}
+
+.error-message .bubble-wrapper {
+  max-width: 100%;
+}
+
 /* --- タブレット（641px〜768px：入力を2段レイアウト） --- */
 @media (min-width: 641px) and (max-width: 768px) {
   .input-section {
@@ -336,7 +374,7 @@ select:disabled {
     max-width: 100%;
   }
 
-  .button-field > label {
+  .button-field > .button-field-label {
     display: none;
   }
 

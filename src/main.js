@@ -1,11 +1,28 @@
 import "./style.css";
 
+const excuseForm = document.getElementById("excuse-form");
 const generateBtn = document.getElementById("generate-btn");
 const chatWindow = document.getElementById("chat-window");
 const eventInput = document.getElementById("event");
 const toneSelect = document.getElementById("tone");
+const eventError = document.getElementById("event-error");
 
 const DEFAULT_BTN_HTML = "生成する";
+
+function showEventError(message) {
+  eventError.textContent = message;
+  eventError.hidden = false;
+  eventInput.setAttribute("aria-invalid", "true");
+  eventInput.focus();
+}
+
+function clearEventError() {
+  eventError.textContent = "";
+  eventError.hidden = true;
+  eventInput.removeAttribute("aria-invalid");
+}
+
+eventInput.addEventListener("input", clearEventError);
 
 function setLoading(isLoading) {
   generateBtn.disabled = isLoading;
@@ -44,10 +61,19 @@ function removeTypingIndicator(indicator) {
   indicator?.remove();
 }
 
-generateBtn.addEventListener("click", async () => {
-  const eventText = eventInput.value.trim();
-  if (!eventText) return;
+excuseForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  handleGenerate();
+});
 
+async function handleGenerate() {
+  const eventText = eventInput.value.trim();
+  if (!eventText) {
+    showEventError("断りたい内容を入力してください。");
+    return;
+  }
+
+  clearEventError();
   setLoading(true);
   const typingIndicator = showTypingIndicator();
 
@@ -82,6 +108,7 @@ generateBtn.addEventListener("click", async () => {
 
     removeTypingIndicator(typingIndicator);
     addIncomingMessage(data.text);
+    eventInput.value = "";
   } catch (error) {
     removeTypingIndicator(typingIndicator);
     addIncomingMessage(
@@ -91,35 +118,49 @@ generateBtn.addEventListener("click", async () => {
     );
   } finally {
     setLoading(false);
-    eventInput.value = "";
   }
-});
+}
 
 function addIncomingMessage(text, { isError = false } = {}) {
   const messageDiv = document.createElement("div");
   messageDiv.className = "message incoming";
-  if (isError) messageDiv.classList.add("error-message");
+  if (isError) {
+    messageDiv.classList.add("error-message");
+    messageDiv.setAttribute("role", "alert");
+  }
 
   const wrapper = document.createElement("div");
   wrapper.className = "bubble-wrapper";
 
   const bubble = document.createElement("div");
   bubble.className = isError ? "bubble bubble-error" : "bubble";
+
+  if (isError) {
+    const prefix = document.createElement("span");
+    prefix.className = "bubble-error-label";
+    prefix.textContent = "エラー";
+    bubble.appendChild(prefix);
+    bubble.appendChild(document.createElement("br"));
+  }
+
   text.split("\n").forEach((line, index) => {
     if (index > 0) bubble.appendChild(document.createElement("br"));
     bubble.appendChild(document.createTextNode(line));
   });
 
-  const copyBtn = document.createElement("button");
-  copyBtn.className = "copy-btn";
-  copyBtn.type = "button";
-  copyBtn.textContent = "📋 コピー";
-  copyBtn.addEventListener("click", () => {
-    navigator.clipboard.writeText(text);
-  });
-
   wrapper.appendChild(bubble);
-  wrapper.appendChild(copyBtn);
+
+  if (!isError) {
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "copy-btn";
+    copyBtn.type = "button";
+    copyBtn.textContent = "📋 コピー";
+    copyBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText(text);
+    });
+    wrapper.appendChild(copyBtn);
+  }
+
   messageDiv.appendChild(wrapper);
   chatWindow.appendChild(messageDiv);
   chatWindow.scrollTop = chatWindow.scrollHeight;
