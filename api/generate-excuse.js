@@ -11,6 +11,8 @@ import { checkRateLimit, getClientIp } from "../lib/rate-limit.js";
 const MAX_EVENT_LENGTH = 500;
 const MAX_BODY_BYTES = 2048;
 const MAX_GEMINI_ATTEMPTS = 3;
+const DEFAULT_VARIANT_COUNT = 3;
+const MAX_VARIANT_COUNT = 5;
 const RETRY_DELAYS_MS = [500, 1500];
 
 const RETRYABLE_HTTP_STATUSES = new Set([429, 500, 502, 503, 504]);
@@ -119,7 +121,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "リクエストの JSON が不正です。" });
   }
 
-  const { eventText, tone } = body ?? {};
+  const { eventText, tone, variantCount } = body ?? {};
 
   if (!eventText || typeof eventText !== "string" || !eventText.trim()) {
     return res.status(400).json({ error: "断りたい内容を入力してください。" });
@@ -129,6 +131,10 @@ export default async function handler(req, res) {
   if (!toneLabel) {
     return res.status(400).json({ error: "テイストを選択してください。" });
   }
+
+  const normalizedVariantCount = Number.isInteger(variantCount)
+    ? Math.min(Math.max(variantCount, 1), MAX_VARIANT_COUNT)
+    : DEFAULT_VARIANT_COUNT;
 
   const trimmedEvent = sanitizeEventText(eventText).slice(0, MAX_EVENT_LENGTH);
   if (!trimmedEvent) {
@@ -148,11 +154,26 @@ export default async function handler(req, res) {
       systemInstruction: SYSTEM_INSTRUCTION,
     });
 
-    const text = await generateExcuseText(
-      model,
-      buildUserMessage(trimmedEvent, toneLabel),
-    );
-    return res.status(200).json({ text });
+    const userMessage = `${buildUserMessage(
+      trimmedEvent,
+      toneLabel,
+    )}\n\n追加要件:\n- 内容の重複を避けた異なる言い回しを ${normalizedVariantCount} 件作成する\n- 各件は1行で出力する\n- 箇条書き記号、番号、引用符、前置きは付けない`;
+    const rawText = await generateExcuseText(model, userMessage);
+    const texts = rawText
+      .split("\n")
+      .map((line) => line.trim())
+      .map((line) => line.replace(/^[\-\*\d\.\)\s]+/, "").trim())
+      .filter(Boolean)
+      .slice(0, normalizedVariantCount);
+
+    if (texts.length === 0) {
+      throw new Error("生成結果が空です。");
+    }
+
+    return res.status(200).json({
+      text: texts[0],
+      texts,
+    });
   } catch (error) {
     console.error("APIエラー:", error);
     return res

@@ -6,9 +6,11 @@ const chatWindow = document.getElementById("chat-window");
 const chatEmptyState = document.getElementById("chat-empty-state");
 const eventInput = document.getElementById("event");
 const toneSelect = document.getElementById("tone");
+const variantCountSelect = document.getElementById("variant-count");
 const eventError = document.getElementById("event-error");
 
 const DEFAULT_BTN_HTML = "生成する";
+const DEFAULT_VARIANT_COUNT = 3;
 
 function showEventError(message) {
   eventError.textContent = message;
@@ -29,6 +31,7 @@ function setLoading(isLoading) {
   generateBtn.disabled = isLoading;
   eventInput.disabled = isLoading;
   toneSelect.disabled = isLoading;
+  variantCountSelect.disabled = isLoading;
   generateBtn.classList.toggle("is-loading", isLoading);
   generateBtn.innerHTML = isLoading
     ? '<span class="btn-spinner" aria-hidden="true"></span><span>生成中...</span>'
@@ -68,6 +71,21 @@ function hideEmptyState() {
   chatEmptyState.setAttribute("aria-hidden", "true");
 }
 
+function normalizeExcuseTexts(data) {
+  if (Array.isArray(data?.texts)) {
+    const items = data.texts
+      .map((text) => (typeof text === "string" ? text.trim() : ""))
+      .filter(Boolean);
+    if (items.length > 0) return items;
+  }
+
+  if (typeof data?.text === "string" && data.text.trim()) {
+    return [data.text.trim()];
+  }
+
+  return [];
+}
+
 excuseForm.addEventListener("submit", (event) => {
   event.preventDefault();
   handleGenerate();
@@ -86,12 +104,20 @@ async function handleGenerate() {
   const typingIndicator = showTypingIndicator();
 
   const tone = toneSelect.value;
+  const variantCount = Number.parseInt(variantCountSelect.value, 10);
+  const normalizedVariantCount = Number.isInteger(variantCount)
+    ? variantCount
+    : DEFAULT_VARIANT_COUNT;
 
   try {
     const response = await fetch("/api/generate-excuse", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ eventText, tone }),
+      body: JSON.stringify({
+        eventText,
+        tone,
+        variantCount: normalizedVariantCount,
+      }),
     });
 
     const rawBody = await response.text();
@@ -114,8 +140,15 @@ async function handleGenerate() {
       throw new Error(data.error ?? "リクエストに失敗しました。");
     }
 
+    const texts = normalizeExcuseTexts(data);
+    if (texts.length === 0) {
+      throw new Error("言い訳の生成結果が空でした。再度お試しください。");
+    }
+
     removeTypingIndicator(typingIndicator);
-    addIncomingMessage(data.text);
+    texts.forEach((text, index) => {
+      addIncomingMessage(`候補${index + 1}\n${text}`);
+    });
     eventInput.value = "";
   } catch (error) {
     removeTypingIndicator(typingIndicator);

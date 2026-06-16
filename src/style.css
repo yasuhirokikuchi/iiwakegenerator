@@ -67,6 +67,10 @@ body {
   flex: 1; /* テイストは少し狭く */
 }
 
+.variant-field {
+  flex: 0.6;
+}
+
 .button-field {
   flex: 1; /* ボタンの幅 */
 }
@@ -356,6 +360,7 @@ select:disabled {
   }
 
   .tone-field,
+  .variant-field,
   .button-field {
     flex: 1 1 calc(50% - 8px);
   }
@@ -396,6 +401,7 @@ select:disabled {
 
   .event-field,
   .tone-field,
+  .variant-field,
   .button-field {
     flex: none;
     width: 100%;
