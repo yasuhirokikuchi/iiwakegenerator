@@ -3,6 +3,7 @@ import "./style.css";
 const excuseForm = document.getElementById("excuse-form");
 const generateBtn = document.getElementById("generate-btn");
 const chatWindow = document.getElementById("chat-window");
+const chatEmptyState = document.getElementById("chat-empty-state");
 const eventInput = document.getElementById("event");
 const toneSelect = document.getElementById("tone");
 const eventError = document.getElementById("event-error");
@@ -61,6 +62,12 @@ function removeTypingIndicator(indicator) {
   indicator?.remove();
 }
 
+function hideEmptyState() {
+  if (!chatEmptyState || chatEmptyState.hidden) return;
+  chatEmptyState.hidden = true;
+  chatEmptyState.setAttribute("aria-hidden", "true");
+}
+
 excuseForm.addEventListener("submit", (event) => {
   event.preventDefault();
   handleGenerate();
@@ -74,6 +81,7 @@ async function handleGenerate() {
   }
 
   clearEventError();
+  hideEmptyState();
   setLoading(true);
   const typingIndicator = showTypingIndicator();
 

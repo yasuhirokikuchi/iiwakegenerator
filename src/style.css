@@ -203,6 +203,25 @@ select:disabled {
   gap: 16px;
 }
 
+.chat-empty-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.chat-empty-state[hidden] {
+  display: none;
+}
+
+.chat-empty-state-text {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  line-height: 1.5;
+  text-align: center;
+}
+
 @keyframes flyIn {
   from {
     opacity: 0;
@@ -401,6 +420,10 @@ select:disabled {
   .chat-window {
     padding: 16px;
     min-height: 240px;
+  }
+
+  .chat-empty-state {
+    padding: 16px 8px;
   }
 
   .bubble-wrapper {
