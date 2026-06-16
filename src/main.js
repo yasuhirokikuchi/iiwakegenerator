@@ -7,10 +7,13 @@ const chatEmptyState = document.getElementById("chat-empty-state");
 const eventInput = document.getElementById("event");
 const toneSelect = document.getElementById("tone");
 const variantCountSelect = document.getElementById("variant-count");
+const strengthInput = document.getElementById("strength");
+const strengthLabel = document.getElementById("strength-label");
 const eventError = document.getElementById("event-error");
 
 const DEFAULT_BTN_HTML = "生成する";
 const DEFAULT_VARIANT_COUNT = 3;
+const DEFAULT_STRENGTH = 3;
 
 function showEventError(message) {
   eventError.textContent = message;
@@ -27,11 +30,27 @@ function clearEventError() {
 
 eventInput.addEventListener("input", clearEventError);
 
+function getStrengthText(value) {
+  if (value <= 2) return "弱め";
+  if (value >= 4) return "強め";
+  return "普通";
+}
+
+function syncStrengthLabel() {
+  const parsed = Number.parseInt(strengthInput.value, 10);
+  const normalized = Number.isInteger(parsed) ? parsed : DEFAULT_STRENGTH;
+  strengthLabel.textContent = getStrengthText(normalized);
+}
+
+strengthInput.addEventListener("input", syncStrengthLabel);
+syncStrengthLabel();
+
 function setLoading(isLoading) {
   generateBtn.disabled = isLoading;
   eventInput.disabled = isLoading;
   toneSelect.disabled = isLoading;
   variantCountSelect.disabled = isLoading;
+  strengthInput.disabled = isLoading;
   generateBtn.classList.toggle("is-loading", isLoading);
   generateBtn.innerHTML = isLoading
     ? '<span class="btn-spinner" aria-hidden="true"></span><span>生成中...</span>'
@@ -47,6 +66,14 @@ function showTypingIndicator() {
 
   const wrapper = document.createElement("div");
   wrapper.className = "bubble-wrapper";
+
+  const header = document.createElement("div");
+  header.className = "message-header";
+  const sender = document.createElement("span");
+  sender.className = "message-sender";
+  sender.textContent = "Assistant";
+  header.appendChild(sender);
+  wrapper.appendChild(header);
 
   const bubble = document.createElement("div");
   bubble.className = "bubble typing-bubble";
@@ -108,6 +135,10 @@ async function handleGenerate() {
   const normalizedVariantCount = Number.isInteger(variantCount)
     ? variantCount
     : DEFAULT_VARIANT_COUNT;
+  const strength = Number.parseInt(strengthInput.value, 10);
+  const normalizedStrength = Number.isInteger(strength)
+    ? strength
+    : DEFAULT_STRENGTH;
 
   try {
     const response = await fetch("/api/generate-excuse", {
@@ -117,6 +148,7 @@ async function handleGenerate() {
         eventText,
         tone,
         variantCount: normalizedVariantCount,
+        strength: normalizedStrength,
       }),
     });
 
@@ -147,7 +179,7 @@ async function handleGenerate() {
 
     removeTypingIndicator(typingIndicator);
     texts.forEach((text, index) => {
-      addIncomingMessage(`候補${index + 1}\n${text}`);
+      addIncomingMessage(text, { candidateIndex: index + 1 });
     });
     eventInput.value = "";
   } catch (error) {
@@ -162,7 +194,7 @@ async function handleGenerate() {
   }
 }
 
-function addIncomingMessage(text, { isError = false } = {}) {
+function addIncomingMessage(text, { isError = false, candidateIndex } = {}) {
   const messageDiv = document.createElement("div");
   messageDiv.className = "message incoming";
   if (isError) {
@@ -172,6 +204,26 @@ function addIncomingMessage(text, { isError = false } = {}) {
 
   const wrapper = document.createElement("div");
   wrapper.className = "bubble-wrapper";
+
+  if (!isError) {
+    const header = document.createElement("div");
+    header.className = "message-header";
+
+    const sender = document.createElement("span");
+    sender.className = "message-sender";
+    sender.textContent = "Assistant";
+
+    header.appendChild(sender);
+
+    if (candidateIndex) {
+      const badge = document.createElement("span");
+      badge.className = "message-badge";
+      badge.textContent = `候補 ${candidateIndex}`;
+      header.appendChild(badge);
+    }
+
+    wrapper.appendChild(header);
+  }
 
   const bubble = document.createElement("div");
   bubble.className = isError ? "bubble bubble-error" : "bubble";
@@ -192,14 +244,18 @@ function addIncomingMessage(text, { isError = false } = {}) {
   wrapper.appendChild(bubble);
 
   if (!isError) {
+    const actions = document.createElement("div");
+    actions.className = "message-actions";
+
     const copyBtn = document.createElement("button");
     copyBtn.className = "copy-btn";
     copyBtn.type = "button";
-    copyBtn.textContent = "📋 コピー";
+    copyBtn.textContent = "コピー";
     copyBtn.addEventListener("click", () => {
       navigator.clipboard.writeText(text);
     });
-    wrapper.appendChild(copyBtn);
+    actions.appendChild(copyBtn);
+    wrapper.appendChild(actions);
   }
 
   messageDiv.appendChild(wrapper);

@@ -7,76 +7,115 @@
     <link rel="icon" type="image/png" href="/assets/icon.png" />
   </head>
   <body>
-    <main class="container">
-      <h1 class="title">言い訳ジェネレーター</h1>
+    <div class="playground">
+      <header class="top-bar">
+        <span class="breadcrumb">言い訳ジェネレーター</span>
+      </header>
 
-      <form id="excuse-form" class="excuse-form" novalidate>
-        <div class="input-section">
-          <div class="field event-field">
-            <label for="event">断りたいこと</label>
-            <input
-              type="text"
-              id="event"
-              name="event"
-              placeholder="例：金曜日の飲み会"
-              autocomplete="off"
-              aria-describedby="event-error"
-            />
-          </div>
-
-          <div class="field tone-field">
-            <label for="tone">テイスト</label>
-            <select id="tone" name="tone">
-              <option value="polite">丁寧</option>
-              <option value="samurai">武士風</option>
-              <option value="gal">ギャル風</option>
-              <option value="business">意識高い系</option>
-              <option value="chuuni">中二病風</option>
-              <option value="grandma">ネコ語</option>
-              <option value="yakuza">極道風</option>
-              <option value="baby">赤ちゃん言葉</option>
-              <option value="sexy">セクシー系</option>
-              <option value="sage">おぢさん風</option>
-            </select>
-          </div>
-
-          <div class="field variant-field">
-            <label for="variant-count">候補数</label>
-            <select id="variant-count" name="variantCount">
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3" selected>3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-            </select>
-          </div>
-
-          <div class="field button-field">
-            <label class="button-field-label" aria-hidden="true">&nbsp;</label>
-            <button type="submit" id="generate-btn" class="btn-primary">
-              生成する
-            </button>
-          </div>
-        </div>
-        <p id="event-error" class="field-error form-error" role="alert" hidden></p>
-      </form>
-
-      <div class="output-section">
-        <div
-          class="chat-window"
-          id="chat-window"
-          role="log"
-          aria-live="polite"
-          aria-relevant="additions"
-        >
-          <div id="chat-empty-state" class="chat-empty-state">
-            <p class="chat-empty-state-text">
-              断りたいこととテイストを選んで「生成する」を押してください
+      <main class="playground-main">
+        <aside class="config-panel">
+          <div class="panel-header">
+            <h1 class="panel-title">設定</h1>
+            <p class="panel-desc">
+              断りたい内容とテイストを選んで生成します
             </p>
           </div>
-        </div>
-      </div>
-    </main>
+
+          <form id="excuse-form" class="excuse-form" novalidate>
+            <div class="field">
+              <label for="event">断りたいこと</label>
+              <input
+                type="text"
+                id="event"
+                name="event"
+                placeholder="例：金曜日の飲み会"
+                autocomplete="off"
+                aria-describedby="event-error"
+              />
+            </div>
+
+            <div class="field">
+              <label for="tone">テイスト</label>
+              <select id="tone" name="tone">
+                <option value="polite">丁寧</option>
+                <option value="samurai">武士風</option>
+                <option value="gal">ギャル風</option>
+                <option value="business">意識高い系</option>
+                <option value="chuuni">中二病風</option>
+                <option value="grandma">ネコ語</option>
+                <option value="yakuza">極道風</option>
+                <option value="baby">赤ちゃん言葉</option>
+                <option value="sexy">セクシー系</option>
+                <option value="sage">おぢさん風</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="variant-count">候補数</label>
+              <select id="variant-count" name="variantCount">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="strength">
+                強さ
+                <span id="strength-label" class="strength-value">普通</span>
+              </label>
+              <div class="strength-slider">
+                <span class="strength-end" aria-hidden="true">弱め</span>
+                <input
+                  type="range"
+                  id="strength"
+                  name="strength"
+                  min="1"
+                  max="5"
+                  step="1"
+                  value="3"
+                  aria-describedby="strength-help"
+                />
+                <span class="strength-end" aria-hidden="true">強め</span>
+              </div>
+              <small id="strength-help" class="sr-only">
+                1が弱め、5が強めです
+              </small>
+            </div>
+
+            <p id="event-error" class="field-error" role="alert" hidden></p>
+
+            <div class="form-actions">
+              <button type="submit" id="generate-btn" class="btn-run">
+                生成する
+              </button>
+            </div>
+          </form>
+        </aside>
+
+        <section class="thread-panel">
+          <div class="thread-header">
+            <span class="thread-label">THREAD</span>
+          </div>
+
+          <div
+            class="chat-window"
+            id="chat-window"
+            role="log"
+            aria-live="polite"
+            aria-relevant="additions"
+          >
+            <div id="chat-empty-state" class="chat-empty-state">
+              <p class="chat-empty-state-text">
+                左の設定を入力して「生成する」を押してください
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
