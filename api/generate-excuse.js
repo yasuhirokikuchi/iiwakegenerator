@@ -11,11 +11,12 @@ import { checkRateLimit, getClientIp } from "../lib/rate-limit.js";
 const MAX_EVENT_LENGTH = 500;
 const MAX_BODY_BYTES = 2048;
 const MAX_GEMINI_ATTEMPTS = 3;
-const DEFAULT_VARIANT_COUNT = 3;
-const MAX_VARIANT_COUNT = 5;
 const DEFAULT_STRENGTH = 3;
 const MIN_STRENGTH = 1;
 const MAX_STRENGTH = 5;
+const DEFAULT_LENGTH = 3;
+const MIN_LENGTH = 1;
+const MAX_LENGTH = 5;
 const RETRY_DELAYS_MS = [500, 1500];
 
 const RETRYABLE_HTTP_STATUSES = new Set([429, 500, 502, 503, 504]);
@@ -124,7 +125,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "リクエストの JSON が不正です。" });
   }
 
-  const { eventText, tone, variantCount, strength } = body ?? {};
+  const { eventText, tone, strength, length } = body ?? {};
 
   if (!eventText || typeof eventText !== "string" || !eventText.trim()) {
     return res.status(400).json({ error: "断りたい内容を入力してください。" });
@@ -135,12 +136,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "テイストを選択してください。" });
   }
 
-  const normalizedVariantCount = Number.isInteger(variantCount)
-    ? Math.min(Math.max(variantCount, 1), MAX_VARIANT_COUNT)
-    : DEFAULT_VARIANT_COUNT;
   const normalizedStrength = Number.isInteger(strength)
     ? Math.min(Math.max(strength, MIN_STRENGTH), MAX_STRENGTH)
     : DEFAULT_STRENGTH;
+  const normalizedLength = Number.isInteger(length)
+    ? Math.min(Math.max(length, MIN_LENGTH), MAX_LENGTH)
+    : DEFAULT_LENGTH;
 
   const trimmedEvent = sanitizeEventText(eventText).slice(0, MAX_EVENT_LENGTH);
   if (!trimmedEvent) {
@@ -156,30 +157,21 @@ export default async function handler(req, res) {
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.5-flash",
       systemInstruction: SYSTEM_INSTRUCTION,
     });
 
     const userMessage = `${buildUserMessage(
       trimmedEvent,
       toneLabel,
-    )}\n\n追加要件:\n- 内容の重複を避けた異なる言い回しを ${normalizedVariantCount} 件作成する\n- 断る強さは ${normalizedStrength}/5 とする（1は柔らかめ、5は強め）\n- 各件は1行で出力する\n- 箇条書き記号、番号、引用符、前置きは付けない`;
-    const rawText = await generateExcuseText(model, userMessage);
-    const texts = rawText
-      .split("\n")
-      .map((line) => line.trim())
-      .map((line) => line.replace(/^[\-\*\d\.\)\s]+/, "").trim())
-      .filter(Boolean)
-      .slice(0, normalizedVariantCount);
+    )}\n\n追加要件:\n- 断る強さは ${normalizedStrength}/5 とする（1は柔らかめ、5は強め）\n- 文章の長さは ${normalizedLength}/5 とする（1は短め、5は長め）`;
+    const text = await generateExcuseText(model, userMessage);
 
-    if (texts.length === 0) {
+    if (!text?.trim()) {
       throw new Error("生成結果が空です。");
     }
 
-    return res.status(200).json({
-      text: texts[0],
-      texts,
-    });
+    return res.status(200).json({ text: text.trim() });
   } catch (error) {
     console.error("APIエラー:", error);
     return res

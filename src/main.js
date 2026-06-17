@@ -4,16 +4,23 @@ const excuseForm = document.getElementById("excuse-form");
 const generateBtn = document.getElementById("generate-btn");
 const chatWindow = document.getElementById("chat-window");
 const chatEmptyState = document.getElementById("chat-empty-state");
+const threadPanel = document.getElementById("thread-panel");
 const eventInput = document.getElementById("event");
 const toneSelect = document.getElementById("tone");
-const variantCountSelect = document.getElementById("variant-count");
 const strengthInput = document.getElementById("strength");
 const strengthLabel = document.getElementById("strength-label");
+const lengthInput = document.getElementById("length");
+const lengthLabel = document.getElementById("length-label");
 const eventError = document.getElementById("event-error");
+const settingsOpenBtn = document.getElementById("settings-open-btn");
+const settingsCloseBtn = document.getElementById("settings-close-btn");
+const settingsDoneBtn = document.getElementById("settings-done-btn");
+const settingsBackdrop = document.getElementById("settings-backdrop");
+const settingsModal = document.getElementById("settings-modal");
 
 const DEFAULT_BTN_HTML = "生成する";
-const DEFAULT_VARIANT_COUNT = 3;
 const DEFAULT_STRENGTH = 3;
+const DEFAULT_LENGTH = 3;
 
 function showEventError(message) {
   eventError.textContent = message;
@@ -30,7 +37,7 @@ function clearEventError() {
 
 eventInput.addEventListener("input", clearEventError);
 
-function getStrengthText(value) {
+function getGaugeText(value) {
   if (value <= 2) return "弱め";
   if (value >= 4) return "強め";
   return "普通";
@@ -39,18 +46,58 @@ function getStrengthText(value) {
 function syncStrengthLabel() {
   const parsed = Number.parseInt(strengthInput.value, 10);
   const normalized = Number.isInteger(parsed) ? parsed : DEFAULT_STRENGTH;
-  strengthLabel.textContent = getStrengthText(normalized);
+  strengthLabel.textContent = getGaugeText(normalized);
+}
+
+function getLengthText(value) {
+  if (value <= 2) return "短め";
+  if (value >= 4) return "長め";
+  return "普通";
+}
+
+function syncLengthLabel() {
+  const parsed = Number.parseInt(lengthInput.value, 10);
+  const normalized = Number.isInteger(parsed) ? parsed : DEFAULT_LENGTH;
+  lengthLabel.textContent = getLengthText(normalized);
 }
 
 strengthInput.addEventListener("input", syncStrengthLabel);
+lengthInput.addEventListener("input", syncLengthLabel);
 syncStrengthLabel();
+syncLengthLabel();
+
+function openSettingsModal() {
+  settingsModal.hidden = false;
+  settingsModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+  settingsCloseBtn.focus();
+}
+
+function closeSettingsModal() {
+  settingsModal.hidden = true;
+  settingsModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("modal-open");
+  settingsOpenBtn.focus();
+}
+
+settingsOpenBtn.addEventListener("click", openSettingsModal);
+settingsCloseBtn.addEventListener("click", closeSettingsModal);
+settingsDoneBtn.addEventListener("click", closeSettingsModal);
+settingsBackdrop.addEventListener("click", closeSettingsModal);
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !settingsModal.hidden) {
+    closeSettingsModal();
+  }
+});
 
 function setLoading(isLoading) {
   generateBtn.disabled = isLoading;
   eventInput.disabled = isLoading;
   toneSelect.disabled = isLoading;
-  variantCountSelect.disabled = isLoading;
   strengthInput.disabled = isLoading;
+  lengthInput.disabled = isLoading;
+  settingsOpenBtn.disabled = isLoading;
   generateBtn.classList.toggle("is-loading", isLoading);
   generateBtn.innerHTML = isLoading
     ? '<span class="btn-spinner" aria-hidden="true"></span><span>生成中...</span>'
@@ -96,21 +143,7 @@ function hideEmptyState() {
   if (!chatEmptyState || chatEmptyState.hidden) return;
   chatEmptyState.hidden = true;
   chatEmptyState.setAttribute("aria-hidden", "true");
-}
-
-function normalizeExcuseTexts(data) {
-  if (Array.isArray(data?.texts)) {
-    const items = data.texts
-      .map((text) => (typeof text === "string" ? text.trim() : ""))
-      .filter(Boolean);
-    if (items.length > 0) return items;
-  }
-
-  if (typeof data?.text === "string" && data.text.trim()) {
-    return [data.text.trim()];
-  }
-
-  return [];
+  threadPanel?.classList.remove("is-initial");
 }
 
 excuseForm.addEventListener("submit", (event) => {
@@ -131,14 +164,12 @@ async function handleGenerate() {
   const typingIndicator = showTypingIndicator();
 
   const tone = toneSelect.value;
-  const variantCount = Number.parseInt(variantCountSelect.value, 10);
-  const normalizedVariantCount = Number.isInteger(variantCount)
-    ? variantCount
-    : DEFAULT_VARIANT_COUNT;
   const strength = Number.parseInt(strengthInput.value, 10);
   const normalizedStrength = Number.isInteger(strength)
     ? strength
     : DEFAULT_STRENGTH;
+  const length = Number.parseInt(lengthInput.value, 10);
+  const normalizedLength = Number.isInteger(length) ? length : DEFAULT_LENGTH;
 
   try {
     const response = await fetch("/api/generate-excuse", {
@@ -147,8 +178,8 @@ async function handleGenerate() {
       body: JSON.stringify({
         eventText,
         tone,
-        variantCount: normalizedVariantCount,
         strength: normalizedStrength,
+        length: normalizedLength,
       }),
     });
 
@@ -172,15 +203,12 @@ async function handleGenerate() {
       throw new Error(data.error ?? "リクエストに失敗しました。");
     }
 
-    const texts = normalizeExcuseTexts(data);
-    if (texts.length === 0) {
+    if (typeof data.text !== "string" || !data.text.trim()) {
       throw new Error("言い訳の生成結果が空でした。再度お試しください。");
     }
 
     removeTypingIndicator(typingIndicator);
-    texts.forEach((text, index) => {
-      addIncomingMessage(text, { candidateIndex: index + 1 });
-    });
+    addIncomingMessage(data.text.trim());
     eventInput.value = "";
   } catch (error) {
     removeTypingIndicator(typingIndicator);
@@ -194,7 +222,7 @@ async function handleGenerate() {
   }
 }
 
-function addIncomingMessage(text, { isError = false, candidateIndex } = {}) {
+function addIncomingMessage(text, { isError = false } = {}) {
   const messageDiv = document.createElement("div");
   messageDiv.className = "message incoming";
   if (isError) {
@@ -214,14 +242,6 @@ function addIncomingMessage(text, { isError = false, candidateIndex } = {}) {
     sender.textContent = "Assistant";
 
     header.appendChild(sender);
-
-    if (candidateIndex) {
-      const badge = document.createElement("span");
-      badge.className = "message-badge";
-      badge.textContent = `候補 ${candidateIndex}`;
-      header.appendChild(badge);
-    }
-
     wrapper.appendChild(header);
   }
 
