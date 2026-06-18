@@ -1,6 +1,7 @@
 # 言い訳ジェネレーター (Excuse Generator)
 
 AI（Gemini）を活用して、角を立てずに誘いや依頼を断るための「言い訳」を自動生成する Web アプリケーションです。
+[](https://iiwakegenerator.vercel.app/)
 
 ## 特徴
 
